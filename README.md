@@ -7,6 +7,7 @@ Ejercicio para EDA (Asignatura de la [FdI UCM](http://www.fdi.ucm.es))
 * `enunciado.pdf` - enunciado de la práctica
 * `test.jar` - permite hacer pruebas gráficas para verificar que la lectura y escritura de cubos, y las rotaciones, funcionan como deben.
 * `LICENSE` - licencia (Apache v2, muy liberal). Esta licencia NO cubre la copia de [processing](https://processing.org) incluida en `test.jar`
+* `ayuda` - práctica de ayuda, que se verá en el laboratorio (opcional **sólo** si entregas vía GitHub) del día 14 de mayo
 
 ## Cómo hacer pruebas
 
