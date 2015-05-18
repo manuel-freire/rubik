@@ -2,10 +2,12 @@ using namespace std;
 #include <iostream>
 #include <string>
 #include "List.h"
+#include "HashMap.h"
 
 
 const int tamInicial = 2;
-const int prof = 3;
+const int profundidadMax = 4;
+//const int numGiros = 6;
 // GRUPO ==> prEDAtors                                        (Rafa no toques)
 
 
@@ -25,7 +27,7 @@ public:
 
 
 
-	char const getCara(int pos){//O(1)
+	char getCara(int pos)const{//O(1)
 		if ((pos<0)||(pos>5)) return 'z';
 		return caras[pos];
 	}
@@ -90,6 +92,8 @@ class Rubik{
 
 public:
 	Rubik(int tam, string s){
+		
+		
 		size = tam;
 		int recorrer = 0;
 		for (int k = 0; k<tam;k++){
@@ -106,7 +110,7 @@ public:
 		}			
 	}
 
-	Cubilete const getCubilete(int i, int j, int k){
+	Cubilete  getCubilete(int i, int j, int k)const{
 		return cubo[i][j][k];
 	}
 	void setCubilete(int i, int j, int k, Cubilete c){
@@ -115,11 +119,11 @@ public:
 	void ponCaraACubilete(int i, int j, int k, char c, int cara){
 		cubo[i][j][k].setCara(c, cara);
 	}
-	char  const getCaraCubilete(int i, int j, int k, int cara){
+	char  getCaraCubilete(int i, int j, int k, int cara)const{
 		return cubo[i][j][k].getCara(cara);
 	}
 
-	string const aCadena(){
+	string  aCadena()const{
 		//O(n^2) con n = número de cubiletes por lado 
 		string ret= "";
 		for (int k = 0; k<tamInicial;k++){
@@ -136,7 +140,7 @@ public:
 		return ret;
 	}		
 	void gira(char eje1, char eje2, int nivel){
-		//O(n^2) con n = numero de cubiletes por lado
+		//O(n^3) con n = numero de cubiletes por lado
 		if ((eje1=='x')&&(eje2=='y')){
 			giraXY(nivel);
 		}
@@ -157,58 +161,76 @@ public:
 		}
 		return;
 	}
-	bool const resuelto(){
+	bool  resuelto()const{
 		//0(n^2) con n = numero de cubiletes por lado.
 		return (cara0Resuelta() && cara1Resuelta() && cara2Resuelta() && cara3Resuelta() && cara4Resuelta() && cara5Resuelta());
 	}
-	List<string> const resuelve(string s){
-		//O(6^n) con n = la profundidad de la búsqueda.
+	List<string> resuelve(string s){
+		//O(12^n) con n = la profundidad de la búsqueda.
 		List<string> movimientos;
 		Rubik r(tamInicial,s);
-		mejor = prof;
+		for (int i = 0; i <= profundidadMax+1; i++){
+			mejor.push_front("solucion mala");
+		}
+		//mejor = profundidadMax;
 		//  for (int i = 0; i <= 6; i++)
 		//	movimientos.push_front("solucion mala");
 		//  movimientos.push_back("Iniciamos los movimientos ");
-		return resuelveRec(r, movimientos); 
+		resuelveRec(r, movimientos,0);
+		return mejor;
 	}
 
 private:
+	string giros[6];
 	int size;
 	Cubilete cubo[tamInicial][tamInicial][tamInicial];
-	int mejor;
+	List<string> mejor;
+	HashMap<string, int> hashy;
 
-	List<string> resuelveRec(Rubik r, List<string> movimientos){
+
+
+
+	List<string> resuelveRec(Rubik r, List<string> movimientos, int prof){
 	// prueba con cada hijo del nivel actual
     //if(/* si la ultima operacion no es yx, y no ha hecho 2 xy seguidos*/)
+		hashy.insert(r.aCadena(), prof);
 		List<string> ret, aux;
 		//ret = movimientos;
-		for (int i = 0; i <= prof; i++){
+		for (int i = 0; i <= profundidadMax+1; i++){
 			ret.push_front("solucion mala");
 		}
-		if (r.resuelto()){
-			//cout << "encuentra una solucion de profundidad " << movimientos.size() << endl;
-			return movimientos;
-			mejor = movimientos.size();
-			
+		if (r.resuelto()&& (movimientos.size()<mejor.size())){
+			cout << "encuentra una solucion de tamano " << movimientos.size() << endl;
+			//mejor = prof;
+			mejor = movimientos;
+			return mejor;
 
-		}else if (movimientos.size()> mejor){
+		}else if (r.resuelto()){
+			//cout << "encuentra una solucion de tamaño " << movimientos.size() << endl;
+			//mejor = prof;
+			return movimientos;
+
+		}else if ( prof >= profundidadMax){
 				//cout << "entra aqui con profundidad" << prof << endl;
 				//return movimientos;
 			}else{
+
+
 
 
 		for (int i = 0 ; i < tamInicial; i++){     
 			if (movimientos.empty()||(movimientos.back() != "Gira x y "+to_string(i)) && ((movimientos.back() != "Gira y x "+to_string(i)))){ 
 				//cout << "probamos y x " << i <<" con profundidad " << prof; 
 				//cout << endl;
-				string s = "Gira y x ";
-				s += to_string(i);
-				//bool repetir = (movimientos.back() == s);
 				r.gira('y','x',i);
-				movimientos.push_back(s);
-				aux = resuelveRec(r, movimientos);
-				if (aux.size() < ret.size()) ret = aux;
-				movimientos.pop_back();
+				if ((!hashy.contains(r.aCadena())) || (hashy[r.aCadena()] < prof)){
+					string s = "Gira y x ";
+					s += to_string(i);
+					movimientos.push_back(s);
+					aux = resuelveRec(r, movimientos,prof+1);
+					if (aux.size() < ret.size()) ret = aux;
+					movimientos.pop_back();
+				}
 				r.gira('x','y',i);
 			}
 		}
@@ -218,13 +240,15 @@ private:
 				//cout << "probamos x y " << i <<" con profundidad " << prof; 
 				//cout << endl;
 				r.gira('x','y',i);
-				string s = "Gira x y ";
-				s += to_string(i);
-				//bool repetir = (movimientos.back() == s);
-				movimientos.push_back(s);
-				aux = resuelveRec(r, movimientos);
-				if (aux.size() < ret.size()) ret = aux;
-				movimientos.pop_back();
+				if ((!hashy.contains(r.aCadena())) || (hashy[r.aCadena()] < prof)){
+					string s = "Gira x y ";
+					s += to_string(i);
+					//bool repetir = (movimientos.back() == s);
+					movimientos.push_back(s);
+					aux = resuelveRec(r, movimientos,prof+1);
+					if (aux.size() < ret.size()) ret = aux;
+					movimientos.pop_back();
+				}
 				r.gira('y','x',i);
 		
 			}
@@ -234,13 +258,15 @@ private:
 				//cout << "probamos z x " << i <<" con profundidad " << prof; 
 				//cout << endl;
 				r.gira('z','x',i);
-				string s = "Gira z x ";
-				s += to_string(i);
-				//bool repetir = (movimientos.back() == s);
-				movimientos.push_back(s);
-				aux = resuelveRec(r, movimientos);
-				if (aux.size() < ret.size()) ret = aux;
-				movimientos.pop_back();
+				if ((!hashy.contains(r.aCadena())) || (hashy[r.aCadena()] < prof)){
+					string s = "Gira z x ";
+					s += to_string(i);
+					//bool repetir = (movimientos.back() == s);
+					movimientos.push_back(s);
+					aux = resuelveRec(r, movimientos,prof+1);
+					if (aux.size() < ret.size()) ret = aux;
+					movimientos.pop_back();
+				}
 				r.gira('x','z',i);			
 		
 			}
@@ -250,14 +276,17 @@ private:
 				//cout << "probamos x z " << i <<" con profundidad " << prof; 
 				//cout << endl;
 				r.gira('x','z',i);
-				string s = "Gira x z ";
-				s += to_string(i);
-				//bool repetir = (movimientos.back() == s); 
-				movimientos.push_back(s);
-				aux = resuelveRec(r, movimientos);
-				if (aux.size() < ret.size()) ret = aux;
+				if ((!hashy.contains(r.aCadena())) || (hashy[r.aCadena()] < prof)){
+					string s = "Gira x z ";
+					s += to_string(i);
+					//bool repetir = (movimientos.back() == s); 
+					movimientos.push_back(s);
+					aux = resuelveRec(r, movimientos,prof+1);
+					if (aux.size() < ret.size()) ret = aux;
+					movimientos.pop_back();
+				}
 				r.gira('z','x',i);
-				movimientos.pop_back();
+				
 			}
 		}
 		for (int i = 0 ; i < tamInicial; i++){     
@@ -265,13 +294,15 @@ private:
 				//cout << "probamos z y " << i <<" con profundidad " << prof; 
 				//cout << endl;
 				r.gira('y','z',i);
-				string s = "Gira z y ";
-				s += to_string(i);
-				//bool repetir = (movimientos.back() == s);
-				movimientos.push_back("Gira y z "+ i);
-				aux = resuelveRec(r, movimientos);
-				if (aux.size() < ret.size()) ret = aux;
-				movimientos.pop_back();
+				if ((!hashy.contains(r.aCadena())) || (hashy[r.aCadena()] < prof)){
+					string s = "Gira z y ";
+					s += to_string(i);
+					//bool repetir = (movimientos.back() == s);
+					movimientos.push_back(s);
+					aux = resuelveRec(r, movimientos,prof+1);
+					if (aux.size() < ret.size()) ret = aux;
+					movimientos.pop_back();
+				}
 				r.gira('y','z',i);
 			}
 		}
@@ -280,13 +311,15 @@ private:
 				//cout << "probamos y z " << i <<" con profundidad " << prof; 
 				//cout << endl;
 				r.gira('z','y',i);
-				string s = "Gira z y ";
-				s += to_string(i);
-				//bool repetir = (movimientos.back() == s);
-				movimientos.push_back(s);
-				aux = resuelveRec(r, movimientos);
-				if (aux.size() < ret.size()) ret = aux;
-				movimientos.pop_back();
+				if ((!hashy.contains(r.aCadena())) || (hashy[r.aCadena()] < prof)){
+					string s = "Gira z y ";
+					s += to_string(i);
+					//bool repetir = (movimientos.back() == s);
+					movimientos.push_back(s);
+					aux = resuelveRec(r, movimientos,prof+1);
+					if (aux.size() < ret.size()) ret = aux;
+					movimientos.pop_back();
+				}
 				r.gira('y','z',i);			
 			}
 		}		
@@ -425,7 +458,7 @@ private:
 		setCubilete(nivel,0,1, nuevo);
 	}	
 
-	bool const cara0Resuelta(){
+	bool cara0Resuelta()const{
 		char c = getCaraCubilete(1,0,0,0);
 		bool ret = true;
 			if (c != getCaraCubilete(1,1,0,0)) ret = false;
@@ -434,7 +467,7 @@ private:
 		//if (!ret) cout << "La cara 0 no esta resuelta" << endl;
 		return ret;
 	}
-	bool const cara1Resuelta(){
+	bool cara1Resuelta()const{
 		char c = getCaraCubilete(0,0,0,1);
 		bool ret = true;
 			if (c != getCaraCubilete(0,1,0,1)) ret = false;
@@ -443,7 +476,7 @@ private:
 		//if (!ret) cout << "La cara 1 no esta resuelta" << endl;
 		return ret;
 	}
-	bool const cara2Resuelta(){
+	bool cara2Resuelta()const{
 		char c = getCaraCubilete(0,1,0,2);
 		bool ret = true;
 			if (c != getCaraCubilete(1,1,0,2)) ret = false;
@@ -452,7 +485,7 @@ private:
 		//if (!ret) cout << "La cara 2 no esta resuelta" << endl;
 		return ret;
 	}
-	bool const cara3Resuelta(){
+	bool cara3Resuelta()const{
 		char c = getCaraCubilete(0,0,0,3);
 		bool ret = true;
 			if (c != getCaraCubilete(1,0,0,3)) ret = false;
@@ -461,7 +494,7 @@ private:
 		//if (!ret) cout << "La cara 3 no esta resuelta" << endl;
 		return ret;
 	}
-	bool const cara4Resuelta(){
+	bool cara4Resuelta()const{
 		char c = getCaraCubilete(0,0,1,4);
 		bool ret = true;
 			if (c != getCaraCubilete(1,0,1,4)) ret = false;
@@ -470,7 +503,7 @@ private:
 		//if (!ret) cout << "La cara 4 no esta resuelta" << endl;
 		return ret;
 	}
-	bool const cara5Resuelta(){
+	bool cara5Resuelta()const{
 		char c = getCaraCubilete(0,0,0,5);
 		bool ret = true;
 			if (c != getCaraCubilete(1,0,0,5)) ret = false;
@@ -489,14 +522,11 @@ private:
 int main(){
 	Rubik r = Rubik(2,".d.e.f a..e.f .db..f a.b..f .d.ec. a..ec. .db.c. a.b.c.");
 	
-	string sprueba = r.aCadena();
-	cout << sprueba << endl;
-	
-	if(r.resuelto()) cout << "RESUELTO" << endl; else cout << "NO RESUELTO" << endl; 
+	r.gira('x','y',0);
 	//r.gira('x','y',0);
-	//r.gira('x','z',1); 
-	r.gira('y','z',0); 
 	r.gira('x','z',0); 
+	//r.gira('y','x',0); 
+	//r.gira('x','z',0); 
 	List<string> solu = r.resuelve(r.aCadena());
 	//cout << "Sale de resuelve" << endl; 
 	cout << "Ha encontrado una solucion con numero de movimientos: " << solu.size() << endl; 
