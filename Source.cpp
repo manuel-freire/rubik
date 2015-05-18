@@ -25,12 +25,12 @@ public:
 
 
 
-	char getCara(int pos){
+	char const getCara(int pos){//O(1)
 		if ((pos<0)||(pos>5)) return 'z';
 		return caras[pos];
 	}
 
-	void setCara(char c, int pos){
+	void setCara(char c, int pos){//O(1)
 		if ((pos<0)||(pos>5)) return;
 		caras[pos]= c;
 	}
@@ -106,7 +106,7 @@ public:
 		}			
 	}
 
-	Cubilete getCubilete(int i, int j, int k){
+	Cubilete const getCubilete(int i, int j, int k){
 		return cubo[i][j][k];
 	}
 	void setCubilete(int i, int j, int k, Cubilete c){
@@ -115,11 +115,12 @@ public:
 	void ponCaraACubilete(int i, int j, int k, char c, int cara){
 		cubo[i][j][k].setCara(c, cara);
 	}
-	char getCaraCubilete(int i, int j, int k, int cara){
+	char  const getCaraCubilete(int i, int j, int k, int cara){
 		return cubo[i][j][k].getCara(cara);
 	}
 
 	string const aCadena(){
+		//O(n^2) con n = número de cubiletes por lado 
 		string ret= "";
 		for (int k = 0; k<tamInicial;k++){
 			for (int j = 0; j<tamInicial;j++){
@@ -135,6 +136,7 @@ public:
 		return ret;
 	}		
 	void gira(char eje1, char eje2, int nivel){
+		//O(n^2) con n = numero de cubiletes por lado
 		if ((eje1=='x')&&(eje2=='y')){
 			giraXY(nivel);
 		}
@@ -155,17 +157,18 @@ public:
 		}
 		return;
 	}
-	bool const resuelto(){	
+	bool const resuelto(){
+		//0(n^2) con n = numero de cubiletes por lado.
 		return (cara0Resuelta() && cara1Resuelta() && cara2Resuelta() && cara3Resuelta() && cara4Resuelta() && cara5Resuelta());
 	}
 	List<string> const resuelve(string s){
+		//O(6^n) con n = la profundidad de la búsqueda.
 		List<string> movimientos;
 		Rubik r(tamInicial,s);
 		mejor = prof;
-
-		//for (int i = 0; i <= 6; i++)
+		//  for (int i = 0; i <= 6; i++)
 		//	movimientos.push_front("solucion mala");
-		//movimientos.push_back("Iniciamos los movimientos ");
+		//  movimientos.push_back("Iniciamos los movimientos ");
 		return resuelveRec(r, movimientos); 
 	}
 
