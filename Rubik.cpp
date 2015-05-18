@@ -1,3 +1,5 @@
+//GeneracionEdi, Rodrigo Arranz y Rafael Delgado.
+
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -34,25 +36,33 @@ struct Cubo {
 		sol = sol + cara[1] + cara[2] + cara[3] + cara[4] + cara[5];
 		return sol;
 	}
+
+	char dameCara(int a){
+		return cara[a];
+	}
 };
 
 class Rubik {
-	private:
-		int tam;
-		HashMap<int, Cubo> puzzle;
-		void swapCubos(int a, int b, int c, int d) {
-			Cubo cubo = puzzle[a];
-			puzzle[a] = puzzle[b];
-			puzzle[b] = puzzle[c];
-			puzzle[c] = puzzle[d];
-			puzzle[d] = cubo;
-		}
-	public:
-		Rubik(int n, string s);
-		string aCadena();
-		void gira(char e1, char e2, int n);
-		List<string> resuelve(int n);
-		bool resuelto();
+private:
+	int tam;
+	HashMap<int, Cubo> puzzle;
+	void swapCubos(int a, int b, int c, int d) {
+		Cubo cubo = puzzle[a];
+		puzzle[a] = puzzle[b];
+		puzzle[b] = puzzle[c];
+		puzzle[c] = puzzle[d];
+		puzzle[d] = cubo;
+	}
+public:
+	Rubik(int n, string s);
+	string aCadena();
+	void gira(char e1, char e2, int n);
+	List<string> resuelve(int n);
+	bool resRec(Rubik r, List<string> l, List<string> &sol, int n, int k, HashMap<string, int> &estados, char e1, char e2, int e);
+	bool resuelto();
+	Rubik copy(){
+		return Rubik(tam, aCadena());
+	}
 };
 
 // Constructor
@@ -91,7 +101,7 @@ void Rubik::gira(char e1, char e2, int n) {
 		puzzle[b].gira(e1, e2);
 		puzzle[c].gira(e1, e2);
 		puzzle[d].gira(e1, e2);
-		if(e1 == 'x') swapCubos(a, b, c, d);
+		if (e1 == 'x') swapCubos(a, b, c, d);
 		else swapCubos(a, d, c, b);
 	}
 	if ((e1 == 'x' && e2 == 'z') || (e1 == 'z' && e2 == 'x')) {
@@ -117,20 +127,80 @@ void Rubik::gira(char e1, char e2, int n) {
 		puzzle[b].gira(e1, e2);
 		puzzle[c].gira(e1, e2);
 		puzzle[d].gira(e1, e2);
-		if(e1 == 'y') swapCubos(a, b, c, d);
+		if (e1 == 'y') swapCubos(a, b, c, d);
 		else swapCubos(a, d, c, b);
 	}
 }
-
+bool Rubik::resRec(Rubik r, List<string> x, List<string> &s, int n, int k, HashMap<string, int> &estados, char e1, char e2, int e){
+	r.gira(e1, e2, e);
+	string aux = to_string(n);
+	aux = e2 + aux;
+	aux = e1 + aux;
+	x.push_back(aux);
+	if (estados[r.aCadena()] == 0){
+		estados[r.aCadena()]++;
+		if (r.resuelto()){
+			if (x.size() < s.size())s = x;
+		}
+		else{
+			if (n > k){
+				resRec(copy(), x, s, n, k + 1, estados, 'x', 'y', 0);
+				resRec(copy(), x, s, n, k + 1, estados, 'x', 'y', 1);
+				resRec(copy(), x, s, n, k + 1, estados, 'x', 'z', 0);
+				resRec(copy(), x, s, n, k + 1, estados, 'x', 'z', 1);
+				resRec(copy(), x, s, n, k + 1, estados, 'y', 'x', 0);
+				resRec(copy(), x, s, n, k + 1, estados, 'y', 'x', 1);
+				resRec(copy(), x, s, n, k + 1, estados, 'y', 'z', 0);
+				resRec(copy(), x, s, n, k + 1, estados, 'y', 'z', 1);
+				resRec(copy(), x, s, n, k + 1, estados, 'z', 'x', 0);
+				resRec(copy(), x, s, n, k + 1, estados, 'z', 'x', 1);
+				resRec(copy(), x, s, n, k + 1, estados, 'z', 'y', 0);
+				resRec(copy(), x, s, n, k + 1, estados, 'z', 'y', 1);
+			}
+			
+		}
+	}
+	return false;
+}
 // Lista con los movimientos para resolver el puzzle
 List<string> Rubik::resuelve(int n) {
 	List<string> s;
+	List<string> x;
+	HashMap<string, int> estados;
+	estados[aCadena()]++;
+	resRec(copy(), x, s, n, 0, estados, 'x', 'y', 0);
+	resRec(copy(), x, s, n, 0, estados, 'x', 'y', 1);
+	resRec(copy(), x, s, n, 0, estados, 'x', 'z', 0);
+	resRec(copy(), x, s, n, 0, estados, 'x', 'z', 1);
+	resRec(copy(), x, s, n, 0, estados, 'y', 'x', 0);
+	resRec(copy(), x, s, n, 0, estados, 'y', 'x', 1);
+	resRec(copy(), x, s, n, 0, estados, 'y', 'z', 0);
+	resRec(copy(), x, s, n, 0, estados, 'y', 'z', 1);
+	resRec(copy(), x, s, n, 0, estados, 'z', 'x', 0);
+	resRec(copy(), x, s, n, 0, estados, 'z', 'x', 1);
+	resRec(copy(), x, s, n, 0, estados, 'z', 'y', 0);
+	resRec(copy(), x, s, n, 0, estados, 'z', 'y', 1);
 	return s;
 }
 
 // Comprueba que está resuelto el puzzle
 bool Rubik::resuelto() {
-	return false;
+	int num = tam*tam*tam;
+	char aux = ',';
+	for (int i = 1; i < 6; i++) {
+		for (int j = 0; j < num; j++){
+			char aux2 = puzzle[j].dameCara(i);
+			if ((aux == ',') && (aux2 != '.'))aux = aux2;
+			else{
+				if (aux2 != '.'){
+					if (aux != aux2) return false;
+				}
+					
+			}
+		}
+		aux = ',';
+	}
+	return true;
 }
 
 void main() {
