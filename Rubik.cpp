@@ -1,4 +1,4 @@
-//GeneracionEdi, Rodrigo Arranz y Rafael Delgado.
+//GeneracionEDI, Rodrigo Arranz y Rafael Delgado.
 
 #include <iostream>
 #include <sstream>
@@ -201,11 +201,4 @@ bool Rubik::resuelto() {
 		aux = ',';
 	}
 	return true;
-}
-
-void main() {
-	Rubik r = Rubik(2, ".d.e.f a..e.f .db..f a.b..f .d.ec. a..ec. .db.c. a.b.c.");
-	cout << r.aCadena();
-	int n;
-	cin >> n;
 }
